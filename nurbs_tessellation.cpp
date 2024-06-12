@@ -331,7 +331,9 @@ l = 1, 2, ...
 
 
 
-Point* nurbs();
+Point* nurbs(){
+	return NULL;
+}
 
 int main()
 {
@@ -431,7 +433,7 @@ int main()
 		//window.clear();
 		window.draw(&point, 1, sf::Points);
 		window.display();
-		window.close();
+		//window.close();
 	}
 
 	return 0;
