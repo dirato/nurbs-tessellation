@@ -477,8 +477,8 @@ int main()
 	float hy = 1.0f;
 	float t = 0.0f;
 
-	float u = 0.0f;
-	float v = 0.0f;
+	float u = u_list[n_u-1];
+	float v = v_list[n_v-1];
 
 //-*------------------------------------------------------------------------------
 	while(window.isOpen())
@@ -492,7 +492,10 @@ int main()
 
 		//Procedimento para o plot
 		//Camera* C = newCamera(newPoint(3.0f, 3.0f, 1.25f), NULL, newVector(0, 0, 1), newVector(-sqrt(2)/2, -sqrt(2)/2, 0));
-		Camera* C = newCamera(newPoint(4.0f, 2.0f, -1.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
+		//Camera* C = newCamera(newPoint(2.0f, 0.0f, 0.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
+		//NURBS camera:
+		Camera* C = newCamera(newPoint(2.0f, 2.0f, -1.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
+		//Camera* C = newCamera(newPoint(0.5f, 0.5f, 2.0f), NULL, newVector(0, 1, 0), newVector(0, 0, -1));
 		C = normalizar_camera(C);
 
 		//b2_0 = mudanca_coord_mundial_vista(b2_0, C);
