@@ -146,6 +146,16 @@ Vector* div_vector_escal(Vector* v, float t){
 	return vec_temp;
 }
 
+Point* div_point_escal(Point* p, float t){
+	Point* point_temp = new Point;
+
+	point_temp->x = (float)((p->x)/t);
+	point_temp->y = (float)((p->y)/t);
+	point_temp->z = (float)((p->z)/t);
+
+	return point_temp;
+}
+
 Point* prod_point_escal(Point* p, float t){
 	Point* p_temp = new Point;
 
@@ -331,18 +341,40 @@ l = 1, 2, ...
 
 
 
-Point* nurbs(float u, float v, int n_u, int n_v, int c_u, int c_v, Point** d, float** w, float* u_list, float* v_list);
+Point* nurbs(float u, float v, int n_u, int n_v, int c_u, int c_v, Point** d, float** w, float* u_list, float* v_list){
+	Point* x_u_v = newPoint(0.0f, 0.0f, 0.0f);
+	float coeficientes_d_i_j = 0;
+	float soma_coeficientes_d_i_j = 0;
+
+	for(int row = 0; row < c_v - 1; row++){
+		for(int col = 0; col < c_u - 1; col++){
+			coeficientes_d_i_j = w[row][col]*Nk_l(n_u, col, u, u_list)*Nk_l(n_v, row, v, v_list);
+			soma_coeficientes_d_i_j = soma_coeficientes_d_i_j + coeficientes_d_i_j;
+
+			Point* temp = add_point_point(x_u_v, prod_point_escal(&d[row][col], coeficientes_d_i_j));
+			delete x_u_v;
+			x_u_v = temp;
+			temp = NULL;
+		}
+	}
+
+	Point* temp = div_point_escal(x_u_v, soma_coeficientes_d_i_j);
+	delete x_u_v;
+	x_u_v = temp;
+	temp = NULL;
+	return x_u_v;
+}
 
 int main()
 {
 	// Parametros de entrada BSpline:
-	int n_u;
-	int n_v;
+	int n_u = 3;
+	int n_v = 3;
 	int k_u;
 	int k_v;
 
-	int k_r_u = 4;
-	int k_r_v;
+	int k_r_u = 5;
+	int k_r_v = 5;
 	//float u_list[k_r_u];
 	//float v_list[k_r_v];
 
@@ -363,12 +395,14 @@ int main()
 	u_list[1] = 8.3f;
 	u_list[2] = 9.7f;
 	u_list[3] = 12.5f;
+	u_list[4] = 14.0f;
 	//v_list = {u0, u1, ..., u_k_r_v}.
 	float* v_list = new float[k_r_v];
 	v_list[0] = 0.21f;
 	v_list[1] = 3.87f;
 	v_list[2] = 7.34f;
 	v_list[3] = 9.6f;
+	v_list[4] = 11.4f;
 
 	//d são os pontos de controle da malha:
 	Point** d = NULL;
@@ -377,15 +411,43 @@ int main()
 		d[i] = new Point[c_u]; // colunas
 	}
 
-	//d[0][0].x = 0;
-	//d[0][1]
-	//d[0][2]
-	//d[1][0]
-	//d[1][1]
-	//d[1][2]
-	//d[2][0]
-	//d[2][1]
-	//d[2][2]
+	d[0][0].x = 0;
+	d[0][0].y = 0;
+	d[0][0].z = 0;
+
+	d[0][1].x = 0;
+	d[0][1].y = 1;
+	d[0][1].z = 1;
+
+	d[0][2].x = 0;
+	d[0][2].y = 2;
+	d[0][2].z = 0;
+
+	d[1][0].x = 1;
+	d[1][0].y = 1;
+	d[1][0].z = 2;
+
+	d[1][1].x = 1;
+	d[1][1].y = 2;
+	d[1][1].z = -1;
+
+	d[1][2].x = 1;
+	d[1][2].y = 3;
+	d[1][2].z = 1;
+
+	d[2][0].x = -1;
+	d[2][0].y = 0;
+	d[2][0].z = 0;
+
+	d[2][1].x = -1;
+	d[2][1].y = 1;
+	d[2][1].z = 1.5f;
+
+	d[2][2].x = -1;
+	d[2][2].y = 2;
+	d[2][2].z = -1;
+
+
 
 	//w são os pesos associados aos pontos de controle da malha:
 	float** w = NULL;
@@ -394,6 +456,11 @@ int main()
 		w[i] = new float[c_u]; // colunas
 	}
 
+	for(int row = 0; row < c_v; row++){
+		for(int col = 0; col < c_u; col++){
+			w[row][col] = 1;
+		}
+	}
 	//cout << N0_i(0, 8.3f, u_list) << endl;
 	//cout << Nk_l(3, 1, 8.35f, u_list) << endl;
 //-----------------------------------------------------------------------------
@@ -410,24 +477,35 @@ int main()
 	float hy = 1.0f;
 	float t = 0.0f;
 
+	float u = 0.0f;
+	float v = 0.0f;
+
 //-*------------------------------------------------------------------------------
 	while(window.isOpen())
 	{
 		// Curva de Bezier
 		//Point* b2_0 = bezier_quadratic_bernstein(newPoint(1, 0, 1), newPoint(0,0,0), newPoint(1, 1, 1), t);
-		Point* b2_0 = bezier_quadratic_bernstein(newPoint(0, 0, 2), newPoint(0,0.5f,0), newPoint(0, 1, 2), t);
+		//Point* b2_0 = bezier_quadratic_bernstein(newPoint(0, 0, 2), newPoint(0,0.5f,0), newPoint(0, 1, 2), t);
 		//cout << "b2_0(" << t << "): " << b2_0->x << ", " << b2_0->y << ", " << b2_0->z << endl;
+
+		Point* x_u_v = nurbs(u, v, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
 
 		//Procedimento para o plot
 		//Camera* C = newCamera(newPoint(3.0f, 3.0f, 1.25f), NULL, newVector(0, 0, 1), newVector(-sqrt(2)/2, -sqrt(2)/2, 0));
-		Camera* C = newCamera(newPoint(2.0f, 0.0f, 0.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
+		Camera* C = newCamera(newPoint(4.0f, 2.0f, -1.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
 		C = normalizar_camera(C);
 
-		b2_0 = mudanca_coord_mundial_vista(b2_0, C);
-		b2_0 = projecao_tela(b2_0, 1, hx, hy);
+		//b2_0 = mudanca_coord_mundial_vista(b2_0, C);
+		//b2_0 = projecao_tela(b2_0, 1, hx, hy);
+		x_u_v = mudanca_coord_mundial_vista(x_u_v, C);
+		x_u_v = projecao_tela(x_u_v, 1, hx, hy);
 
 		// Plotando ponto 2D
-		Point2D* ponto = coord_tela_pixels(Rx, Ry, b2_0);
+		//Point2D* ponto = coord_tela_pixels(Rx, Ry, b2_0);
+		//cout << "Proj_b2_0(" << t << "): " << ponto->x << ", " << ponto->y << endl;
+		//sf::Vertex point(sf::Vector2f(ponto->x, ponto->y), sf::Color::White);
+
+		Point2D* ponto = coord_tela_pixels(Rx, Ry, x_u_v);
 		//cout << "Proj_b2_0(" << t << "): " << ponto->x << ", " << ponto->y << endl;
 		sf::Vertex point(sf::Vector2f(ponto->x, ponto->y), sf::Color::White);
 
@@ -441,7 +519,7 @@ int main()
 					window.close();
 					break;
 				case sf::Event::Resized:
-					cout << "Window width: " << evnt.size.width << ", Window height: " << evnt.size.height << endl;
+					//cout << "Window width: " << evnt.size.width << ", Window height: " << evnt.size.height << endl;
 					break;
 				case sf::Event::TextEntered:
 					// Pegando entrada de texto do usuario (player)
@@ -452,16 +530,26 @@ int main()
 		}
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-			t += 0.0001f;
+			//t += 0.0001f;
+			u += 0.0001f;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
-			t -= 0.0001f;
+			//t -= 0.0001f;
+			u -= 0.0001f;
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
+			//t += 0.0001f;
+			v += 0.0001f;
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X)) {
+			//t -= 0.0001f;
+			v -= 0.0001f;
 		}
 
 		//window.clear();
 		window.draw(&point, 1, sf::Points);
 		window.display();
-		window.close();
+		//window.close();
 	}
 
 	// Desalocando **d e **w:
