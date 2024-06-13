@@ -331,9 +331,7 @@ l = 1, 2, ...
 
 
 
-Point* nurbs(){
-	return NULL;
-}
+Point* nurbs(float u, float v, int n_u, int n_v, int c_u, int c_v, Point** d, float** w, float* u_list, float* v_list);
 
 int main()
 {
@@ -352,8 +350,8 @@ int main()
 	int r_vi;
 	// d_ij = (x_ij, y_ij, z_ij);
 	// float w_ij;
-	int c_u;
-	int c_v;
+	int c_u = 3;
+	int c_v = 3;
 
 	int p_u;
 	int p_v;
@@ -365,9 +363,39 @@ int main()
 	u_list[1] = 8.3f;
 	u_list[2] = 9.7f;
 	u_list[3] = 12.5f;
+	//v_list = {u0, u1, ..., u_k_r_v}.
+	float* v_list = new float[k_r_v];
+	v_list[0] = 0.21f;
+	v_list[1] = 3.87f;
+	v_list[2] = 7.34f;
+	v_list[3] = 9.6f;
+
+	//d são os pontos de controle da malha:
+	Point** d = NULL;
+	d = new Point*[c_v]; // linhas
+	for (int i = 0; i < c_v; i++){
+		d[i] = new Point[c_u]; // colunas
+	}
+
+	//d[0][0].x = 0;
+	//d[0][1]
+	//d[0][2]
+	//d[1][0]
+	//d[1][1]
+	//d[1][2]
+	//d[2][0]
+	//d[2][1]
+	//d[2][2]
+
+	//w são os pesos associados aos pontos de controle da malha:
+	float** w = NULL;
+	w = new float*[c_v]; // linhas
+	for (int i = 0; i < c_v; i++){
+		w[i] = new float[c_u]; // colunas
+	}
 
 	//cout << N0_i(0, 8.3f, u_list) << endl;
-	cout << Nk_l(3, 1, 8.35f, u_list) << endl;
+	//cout << Nk_l(3, 1, 8.35f, u_list) << endl;
 //-----------------------------------------------------------------------------
 	// Resoluções Rx e Ry (em pixels):
 	int Rx = 512;
@@ -433,8 +461,20 @@ int main()
 		//window.clear();
 		window.draw(&point, 1, sf::Points);
 		window.display();
-		//window.close();
+		window.close();
 	}
+
+	// Desalocando **d e **w:
+	for (int i = 0; i < c_v; i++) {
+			delete[] d[i];
+			delete[] w[i];
+	}
+	delete[] d;
+	delete[] w;
+
+	// Desalocando u_list e v_list:
+	delete[] u_list;
+	delete[] v_list;
 
 	return 0;
 }
