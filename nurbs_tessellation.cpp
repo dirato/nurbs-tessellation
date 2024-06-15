@@ -12,7 +12,7 @@ struct Point2D {
 	int x;
 	int y;
 };
-typedef struct Point2D Point2D;
+
 
 Point2D* newPoint2D(int x, int y){
 	Point2D* p2D = new Point2D;
@@ -22,6 +22,8 @@ Point2D* newPoint2D(int x, int y){
 
 	return p2D;
 }
+// Fazer o destrutor aqui de todos os construtores:
+void deletePoint2D();
 
 struct Point {
 	float x;
@@ -76,6 +78,12 @@ Camera* newCamera(Point* C, Vector* U, Vector* V, Vector* N){
 	return cam;
 }
 
+struct Triangle{
+	Point* p1;
+	Point* p2;
+	Point* p3;
+};
+typedef struct Triangle Triangle;
 
 float norma(Vector* v){
 
@@ -257,7 +265,7 @@ Point* mudanca_coord_mundial_vista(Point* p, Camera* cam){
 	P[2][0] = v_p->z;
 
 
-	//float** T = NULL;
+	// Matriz de mudança de coordenadas
 	T[0][0] = cam_norm->U->x;
 	T[0][1] = cam_norm->U->y;
 	T[0][2] = cam_norm->U->z;
@@ -294,7 +302,7 @@ Point* projecao_tela(Point* p, float d, float hx, float hy){
 		ponto_fora_tela = false;
 	}
 	else {
-		cout << "Ponto não pode ser plotado, pois excede o tamanho da tela." << endl;
+		//cout << "Ponto não pode ser projetado na tela, pois excede o tamanho da tela." << endl;
 		ponto_fora_tela = true;
 	}
 
@@ -335,13 +343,20 @@ retorna Nk_l em função de N(k-1)_l e N(k-1)_(l+1)
 k = 1, 2, ...
 l = 1, 2, ...
 */
-	if (k == 1) return (u - u_list[l-1])/(u_list[l+k-1] - u_list[l-1]) * N0_i( l, u, u_list) + (u_list[l+k] - u)/(u_list[l+k] - u_list[l]) * N0_i(l+1, u, u_list);
+
+	if (k == 1) {
+		// Cuidado aqui: Nós repetidos no inter. útil causa singularidade no denominador:
+		return (u - u_list[l-1])/(u_list[l+k-1] - u_list[l-1]) * N0_i( l, u, u_list) + (u_list[l+k] - u)/(u_list[l+k] - u_list[l]) * N0_i(l+1, u, u_list);
+	}
 	return (u - u_list[l-1])/(u_list[l+k-1] - u_list[l-1]) * Nk_l(k - 1, l, u, u_list) + (u_list[l+k] - u)/(u_list[l+k] - u_list[l]) * Nk_l(k - 1, l+1, u, u_list);
 }
 
 
 
 Point* nurbs(float u, float v, int n_u, int n_v, int c_u, int c_v, Point** d, float** w, float* u_list, float* v_list){
+/*
+	Retorna um ponto (em coordenadas mundiais) avaliado na superfície com parâmetros u e v.
+*/
 	Point* x_u_v = newPoint(0.0f, 0.0f, 0.0f);
 	float coeficientes_d_i_j = 0;
 	float soma_coeficientes_d_i_j = 0;
@@ -365,6 +380,8 @@ Point* nurbs(float u, float v, int n_u, int n_v, int c_u, int c_v, Point** d, fl
 	return x_u_v;
 }
 
+Point** tesselation_points(int p_u, int p_v);
+
 int main()
 {
 	// Parametros de entrada BSpline:
@@ -373,8 +390,8 @@ int main()
 	int k_u;
 	int k_v;
 
-	int k_r_u = 5;
-	int k_r_v = 5;
+	int k_r_u = 7;
+	int k_r_v = 7;
 	//float u_list[k_r_u];
 	//float v_list[k_r_v];
 
@@ -382,8 +399,8 @@ int main()
 	int r_vi;
 	// d_ij = (x_ij, y_ij, z_ij);
 	// float w_ij;
-	int c_u = 3;
-	int c_v = 3;
+	int c_u = 5;
+	int c_v = 5;
 
 	int p_u;
 	int p_v;
@@ -396,6 +413,8 @@ int main()
 	u_list[2] = 9.7f;
 	u_list[3] = 12.5f;
 	u_list[4] = 14.0f;
+	u_list[5] = 16.0f;
+	u_list[6] = 17.5f;
 	//v_list = {u0, u1, ..., u_k_r_v}.
 	float* v_list = new float[k_r_v];
 	v_list[0] = 0.21f;
@@ -403,6 +422,8 @@ int main()
 	v_list[2] = 7.34f;
 	v_list[3] = 9.6f;
 	v_list[4] = 11.4f;
+	v_list[5] = 13.2f;
+	v_list[6] = 15.8f;
 
 	//d são os pontos de controle da malha:
 	Point** d = NULL;
@@ -411,43 +432,19 @@ int main()
 		d[i] = new Point[c_u]; // colunas
 	}
 
-	d[0][0].x = 0;
-	d[0][0].y = 0;
-	d[0][0].z = 0;
-
-	d[0][1].x = 0;
-	d[0][1].y = 1;
-	d[0][1].z = 1;
-
-	d[0][2].x = 0;
-	d[0][2].y = 2;
-	d[0][2].z = 0;
-
-	d[1][0].x = 1;
-	d[1][0].y = 1;
-	d[1][0].z = 2;
-
-	d[1][1].x = 1;
-	d[1][1].y = 2;
-	d[1][1].z = -1;
-
-	d[1][2].x = 1;
-	d[1][2].y = 3;
-	d[1][2].z = 1;
-
-	d[2][0].x = -1;
-	d[2][0].y = 0;
-	d[2][0].z = 0;
-
-	d[2][1].x = -1;
-	d[2][1].y = 1;
-	d[2][1].z = 1.5f;
-
-	d[2][2].x = -1;
-	d[2][2].y = 2;
-	d[2][2].z = -1;
-
-
+	// Lendo da entrada e atribuindo os pontos d[i][j]:
+	for(int i = 0; i < c_v; i++){
+		for(int j = 0; j < c_u; j++){
+			cin >> d[i][j].x >> d[i][j].y >> d[i][j].z;
+		}
+	}
+/*
+	for(int i = 0; i < c_v; i++){
+		for(int j = 0; j < c_u; j++){
+			cout << d[i][j].x << ", " << d[i][j].y << ", " << d[i][j].z<< endl;
+		}
+	}
+*/
 
 	//w são os pesos associados aos pontos de controle da malha:
 	float** w = NULL;
@@ -494,14 +491,14 @@ int main()
 		//Camera* C = newCamera(newPoint(3.0f, 3.0f, 1.25f), NULL, newVector(0, 0, 1), newVector(-sqrt(2)/2, -sqrt(2)/2, 0));
 		//Camera* C = newCamera(newPoint(2.0f, 0.0f, 0.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
 		//NURBS camera:
-		Camera* C = newCamera(newPoint(2.0f, 2.0f, -1.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
+		Camera* C = newCamera(newPoint(7.0f, 2.0f, -1.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
 		//Camera* C = newCamera(newPoint(0.5f, 0.5f, 2.0f), NULL, newVector(0, 1, 0), newVector(0, 0, -1));
 		C = normalizar_camera(C);
 
 		//b2_0 = mudanca_coord_mundial_vista(b2_0, C);
 		//b2_0 = projecao_tela(b2_0, 1, hx, hy);
 		x_u_v = mudanca_coord_mundial_vista(x_u_v, C);
-		x_u_v = projecao_tela(x_u_v, 1, hx, hy);
+		x_u_v = projecao_tela(x_u_v, 1, hx, hy); // dist_focal = 1;
 
 		// Plotando ponto 2D
 		//Point2D* ponto = coord_tela_pixels(Rx, Ry, b2_0);
@@ -533,20 +530,27 @@ int main()
 		}
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-			//t += 0.0001f;
-			u += 0.0001f;
+			if (u >= u_list[n_u-1] && u <= u_list[c_u-1]) u += 0.0001f;
+			else cout << "u fora do limite superior do intervalo útil" << endl;
+			//u += 0.0001f;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
-			//t -= 0.0001f;
-			u -= 0.0001f;
+			if (u >= u_list[n_u-1] && u <= u_list[c_u-1]) u -= 0.0001f;
+			else cout << "u fora do limite inferior do intervalo útil" << endl;
+			//u -= 0.0001f;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-			//t += 0.0001f;
-			v += 0.0001f;
+			if (v >= v_list[n_v-1] && v <= v_list[c_v-1]) v += 0.0001f;
+			else cout << "v fora do limite superior do intervalo útil" << endl;
+			//v += 0.0001f;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X)) {
-			//t -= 0.0001f;
-			v -= 0.0001f;
+			if (v >= v_list[n_v-1] && v <= v_list[c_v-1]) v -= 0.0001f;
+			else cout << "v fora do limite inferior do intervalo útil" << endl;
+			//v -= 0.0001f;
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
+			window.close();
 		}
 
 		//window.clear();
