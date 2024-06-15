@@ -392,36 +392,39 @@ Point** tesselation_points(int p_u, int p_v);
 int main()
 {
 	// Parametros de entrada BSpline:
-	int n_u = 3;
-	int n_v = 3;
-	int k_u;
-	int k_v;
+	int n_u = 3, n_v = 3;
+	int k_u, k_v;
+	int k_r_u = 7, k_r_v = 7;
+	cin >> n_u >> n_v >> k_u >> k_v >> k_r_u >> k_r_v;
 
-	int k_r_u = 7;
-	int k_r_v = 7;
-	//float u_list[k_r_u];
-	//float v_list[k_r_v];
-
-	int r_ui;
-	int r_vi;
-	// d_ij = (x_ij, y_ij, z_ij);
-	// float w_ij;
 	int c_u = 5;
 	int c_v = 5;
 
 	int p_u;
 	int p_v;
-	//P_ij = (x_ij, y_ij, z_ij); Ptos da superfície indexados.
+
+	int* r_u_i = new int[k_u];
+	int* r_v_i= new int[k_v];
 
 	//u_list = {u0, u1, ..., u_k_r_u}.
 	float* u_list = new float[k_r_u];
-	u_list[0] = 1.2f;
+/*	u_list[0] = 1.2f;
 	u_list[1] = 8.3f;
 	u_list[2] = 9.7f;
 	u_list[3] = 12.5f;
 	u_list[4] = 14.0f;
 	u_list[5] = 16.0f;
-	u_list[6] = 17.5f;
+	u_list[6] = 17.5f;*/
+
+	for(int linha = 0; linha < k_r_u; linha++){
+		float u_i_temp;
+		cin >> u_i_temp >> r_u_i[linha];
+
+		for(int rep = linha; rep < linha + r_u_i[linha]; rep++){
+			u_list[rep] = u_i_temp;
+		}
+	}
+
 	//v_list = {u0, u1, ..., u_k_r_v}.
 	float* v_list = new float[k_r_v];
 	v_list[0] = 0.21f;
@@ -432,26 +435,15 @@ int main()
 	v_list[5] = 13.2f;
 	v_list[6] = 15.8f;
 
+
+
+
 	//d são os pontos de controle da malha:
 	Point** d = NULL;
 	d = new Point*[c_v]; // linhas
 	for (int i = 0; i < c_v; i++){
 		d[i] = new Point[c_u]; // colunas
 	}
-
-	// Lendo da entrada e atribuindo os pontos d[i][j]:
-	for(int i = 0; i < c_v; i++){
-		for(int j = 0; j < c_u; j++){
-			cin >> d[i][j].x >> d[i][j].y >> d[i][j].z;
-		}
-	}
-/*
-	for(int i = 0; i < c_v; i++){
-		for(int j = 0; j < c_u; j++){
-			cout << d[i][j].x << ", " << d[i][j].y << ", " << d[i][j].z<< endl;
-		}
-	}
-*/
 
 	//w são os pesos associados aos pontos de controle da malha:
 	float** w = NULL;
@@ -460,11 +452,19 @@ int main()
 		w[i] = new float[c_u]; // colunas
 	}
 
-	for(int row = 0; row < c_v; row++){
-		for(int col = 0; col < c_u; col++){
-			w[row][col] = 1;
+	// Lendo da entrada e atribuindo os pontos de controle d[i][j] e pesos w[i][j]:
+	for(int i = 0; i < c_v; i++){
+		for(int j = 0; j < c_u; j++){
+			cin >> d[i][j].x >> d[i][j].y >> d[i][j].z >> w[i][j];
 		}
 	}
+/*
+	for(int i = 0; i < c_v; i++){
+		for(int j = 0; j < c_u; j++){
+			cout << d[i][j].x << ", " << d[i][j].y << ", " << d[i][j].z << ". Peso = " << w[i][j] << endl;
+		}
+	}
+*/
 	//cout << N0_i(0, 8.3f, u_list) << endl;
 	//cout << Nk_l(3, 1, 8.35f, u_list) << endl;
 //-----------------------------------------------------------------------------
