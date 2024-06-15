@@ -5,7 +5,7 @@
 *Para compilar código objeto:
 g++ nurbs_tessellation.cpp -o tessel -lsfml-graphics -lsfml-window -lsfml-system
 *Para executar:
-./tessel < pontos_controle.in > arquivo.out
+./tessel < arquivo.in > arquivo.out
 */
 using std::cout, std::cin, std::endl;
 
@@ -352,7 +352,10 @@ l = 1, 2, ...
 */
 
 	if (k == 1) {
+		if(u_list[l-1] == u_list[l]){
 		// Cuidado aqui: Nós repetidos no inter. útil causa singularidade no denominador:
+		return 0;
+		}
 		return (u - u_list[l-1])/(u_list[l+k-1] - u_list[l-1]) * N0_i( l, u, u_list) + (u_list[l+k] - u)/(u_list[l+k] - u_list[l]) * N0_i(l+1, u, u_list);
 	}
 	return (u - u_list[l-1])/(u_list[l+k-1] - u_list[l-1]) * Nk_l(k - 1, l, u, u_list) + (u_list[l+k] - u)/(u_list[l+k] - u_list[l]) * Nk_l(k - 1, l+1, u, u_list);
@@ -397,8 +400,10 @@ int main()
 	int k_r_u = 7, k_r_v = 7;
 	cin >> n_u >> n_v >> k_u >> k_v >> k_r_u >> k_r_v;
 
-	int c_u = 5;
-	int c_v = 5;
+	// k + 1 = c + n => c = k+1 - n.
+	int c_u = k_r_u + 1 - n_u;
+	int c_v = k_r_v + 1 - n_v;
+	//cout << "c_u e c_v: " << c_u << " " << c_v << endl;
 
 	int p_u;
 	int p_v;
@@ -416,25 +421,47 @@ int main()
 	u_list[5] = 16.0f;
 	u_list[6] = 17.5f;*/
 
-	for(int linha = 0; linha < k_r_u; linha++){
+	// Lendo da entrada e atribuindo os nós (u_i) à u_list:
+	int indice_u_list=0;
+	for(int linha = 0; linha < k_u; linha++){// percorrendo as linhas do arquivo
 		float u_i_temp;
 		cin >> u_i_temp >> r_u_i[linha];
+		//cout << "Lendo do arquivo: " << u_i_temp << " " << r_u_i[linha] << endl;
 
-		for(int rep = linha; rep < linha + r_u_i[linha]; rep++){
-			u_list[rep] = u_i_temp;
+		for(int rep = 0; rep < r_u_i[linha]; rep++){
+			u_list[indice_u_list] = u_i_temp;
+			indice_u_list++;
 		}
 	}
+	/*for(int i = 0; i<k_r_u; i++){
+		cout << "u_" << i<< " = " << u_list[i] << endl;
+	}*/
 
 	//v_list = {u0, u1, ..., u_k_r_v}.
 	float* v_list = new float[k_r_v];
-	v_list[0] = 0.21f;
+	/*v_list[0] = 0.21f;
 	v_list[1] = 3.87f;
 	v_list[2] = 7.34f;
 	v_list[3] = 9.6f;
 	v_list[4] = 11.4f;
 	v_list[5] = 13.2f;
-	v_list[6] = 15.8f;
+	v_list[6] = 15.8f;*/
 
+	// Lendo da entrada e atribuindo os nós (v_i) à v_list:
+	int indice_v_list=0;
+	for(int linha = 0; linha < k_v; linha++){
+		float v_i_temp;
+		cin >> v_i_temp >> r_v_i[linha];
+		//cout << "Lendo do arquivo: " << v_i_temp << r_v_i[linha] << endl;
+
+		for(int rep = 0; rep < r_v_i[linha]; rep++){
+			v_list[indice_v_list] = v_i_temp;
+			indice_v_list++;
+		}
+	}
+	/*for(int i = 0; i < k_r_v; i++){
+		cout << "v_" << i << " = " << v_list[i] << endl;
+	}*/
 
 
 
@@ -468,56 +495,121 @@ int main()
 	//cout << N0_i(0, 8.3f, u_list) << endl;
 	//cout << Nk_l(3, 1, 8.35f, u_list) << endl;
 //-----------------------------------------------------------------------------
+	/*
+	NURBS camera:
+	Lendo centro, N, V e dist_focal:
+	*/
+	Camera* cam = newCamera(newPoint(0.0f, 0.0f, 0.0f), NULL, newVector(0, 0, 0), newVector(0, 0, 0), 0);
+	cin >> cam->C->x >> cam->C->y >> cam->C->z;
+	cin >> cam->N->x >> cam->N->y >> cam->N->z;
+	cin >> cam->V->x >> cam->V->y >> cam->V->z;
+	cin >> cam->dist_focal;
+	//cout << cam->C->x<< endl;
+
 	// Resoluções Rx e Ry (em pixels):
 	int Rx = 512;
 	int Ry = 512;
 
 	sf::RenderWindow window(sf::VideoMode(Rx, Ry), "Bezier curve", sf::Style::Close | sf::Style::Resize);
 
-	// Plotando ponto 2D
-	//sf::Vertex point(sf::Vector2f(10, 10), sf::Color::White);
+	/*
+		Lendo dimensões da tela h_x e h_y:
+	*/
+	float hx = 0.0f;
+	float hy = 0.0f;
+	cin >> hx >> hy;
 
-	float hx = 1.0f;
-	float hy = 1.0f;
-	float t = 0.0f;
+	/*
+		Lendo numero de pontos avaliados na superfície
+		na direção de u e v
+	*/
+	float pu;
+	float pv;
+	cin >> pu >> pv;
+	cout << "Pontos avaliados na superfície " << pu << " " << pv << endl;
 
+	//float t = 0.0f;
+
+	// Inicializando as variáveis de parametrização:
 	float u = u_list[n_u-1];
 	float v = v_list[n_v-1];
-
+	float delta_u = (u_list[c_u-1] - u_list[n_u-1])/pu;
+	float delta_v = (v_list[c_v-1] - v_list[n_v-1])/pv;
+	cout << "delats u e v : " << delta_u << " " << delta_v << endl;
 //-*------------------------------------------------------------------------------
+/*
+	//x(i, j) são os pontos avaliados na superfície em coord. mundiais:
+	Point** x = NULL;
+	x = new Point*[(int)pv]; // linhas
+	for (int i = 0; i < pv; i++){
+		x[i] = new Point[(int)pu]; // colunas
+	}
+*/
+
+/*
+	Point* x_u_v = NULL;
+	//
+	for(int i = 0; i < pv; i++){
+		for(int j = 0; j < pu; j++){
+			u = u + (float)delta_u*j;
+			v = v + (float)delta_v*i;
+
+			x_u_v = nurbs(u, v, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
+			cam = normalizar_camera(cam);
+			x_u_v = mudanca_coord_mundial_vista(x_u_v, cam);
+			x_u_v = projecao_tela(x_u_v, cam->dist_focal, hx, hy);
+
+			Point2D* ponto = coord_tela_pixels(Rx, Ry, x_u_v);
+			//cout << "Proj_b2_0(" << t << "): " << ponto->x << ", " << ponto->y << endl;
+			sf::Vertex point(sf::Vector2f(ponto->x, ponto->y), sf::Color::White);
+		}
+	}
+*/
+
+	bool fim = false;
+	Point* x_u_v = NULL;
 	while(window.isOpen())
 	{
-		// Curva de Bezier
-		//Point* b2_0 = bezier_quadratic_bernstein(newPoint(1, 0, 1), newPoint(0,0,0), newPoint(1, 1, 1), t);
-		//Point* b2_0 = bezier_quadratic_bernstein(newPoint(0, 0, 2), newPoint(0,0.5f,0), newPoint(0, 1, 2), t);
-		//cout << "b2_0(" << t << "): " << b2_0->x << ", " << b2_0->y << ", " << b2_0->z << endl;
+		//Point* x_u_v = NULL;
+		//
+		for(int i = 0; i < (int)pv  && !fim; i++){
+			v = v + delta_v;
+			//cout << "v" << i << "= " << v << endl;
+			for(int j = 0; j < (int)pu; j++){
+				u = u + delta_u;
+				//cout << "u" << j << "= " << u << endl;
 
-		Point* x_u_v = nurbs(u, v, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
+				x_u_v = nurbs(u, v, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
+				cout << "x(" << i << ", " << j << ") = " << x_u_v->x << " " << x_u_v->y << " " << x_u_v-> z << endl;
+				/*x[i][j].x = x_u_v->x;
+				x[i][j].y = x_u_v->y;
+				x[i][j].z = x_u_v->z;*/
 
-		//Procedimento para o plot
-		//Camera* C = newCamera(newPoint(3.0f, 3.0f, 1.25f), NULL, newVector(0, 0, 1), newVector(-sqrt(2)/2, -sqrt(2)/2, 0));
-		//Camera* C = newCamera(newPoint(2.0f, 0.0f, 0.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
-		//NURBS camera:
-		Camera* C = newCamera(newPoint(7.0f, 2.0f, -1.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0), 1);
-		//Camera* C = newCamera(newPoint(0.5f, 0.5f, 2.0f), NULL, newVector(0, 1, 0), newVector(0, 0, -1));
-		C = normalizar_camera(C);
+				//cam = normalizar_camera(cam);
+				Camera* _cam = normalizar_camera(cam);
+				delete cam;
+				cam = _cam;
+				_cam = NULL;
 
-		//b2_0 = mudanca_coord_mundial_vista(b2_0, C);
-		//b2_0 = projecao_tela(b2_0, 1, hx, hy);
-		x_u_v = mudanca_coord_mundial_vista(x_u_v, C);
-		x_u_v = projecao_tela(x_u_v, C->dist_focal, hx, hy); // dist_focal = 1;
+				Point* _x_u_v = NULL;
+				//x_u_v = mudanca_coord_mundial_vista(x_u_v, cam);
+				_x_u_v = mudanca_coord_mundial_vista(x_u_v, cam);
+				delete x_u_v;
+				x_u_v = _x_u_v;
+				_x_u_v = NULL;
 
-		// Plotando ponto 2D
-		//Point2D* ponto = coord_tela_pixels(Rx, Ry, b2_0);
-		//cout << "Proj_b2_0(" << t << "): " << ponto->x << ", " << ponto->y << endl;
-		//sf::Vertex point(sf::Vector2f(ponto->x, ponto->y), sf::Color::White);
+				x_u_v = projecao_tela(x_u_v, cam->dist_focal, hx, hy);
 
-		Point2D* ponto = coord_tela_pixels(Rx, Ry, x_u_v);
-		//cout << "Proj_b2_0(" << t << "): " << ponto->x << ", " << ponto->y << endl;
-		sf::Vertex point(sf::Vector2f(ponto->x, ponto->y), sf::Color::White);
+				Point2D* ponto = coord_tela_pixels(Rx, Ry, x_u_v);
+				sf::Vertex point(sf::Vector2f(ponto->x, ponto->y), sf::Color::White);
 
+				/*
+						Fazer um (Ponto2D**) para armazear ptos da tela e
+					fazer a tesselagem.
+						Colocar no lugar de (Point x**).
+				*/
 
-		sf::Event evnt;
+		/*sf::Event evnt;
 		while(window.pollEvent(evnt))
 		{
 			switch(evnt.type)
@@ -558,13 +650,34 @@ int main()
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
 			window.close();
-		}
+		}*/
 
-		//window.clear();
-		window.draw(&point, 1, sf::Points);
-		window.display();
-		//window.close();
+				//window.clear();
+				window.draw(&point, 1, sf::Points);
+				window.display();
+				//window.close();
+
+				delete ponto, x_u_v;
+			}
+			u = u_list[n_u-1];
+		}
+		//v = v_list[n_v-1];
+		fim = true;
+		//cout << "conta feita" << endl;
+
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
+			window.close();
+		}
 	}
+
+/*
+	// Escrevendo na saída os ptos na superfície:
+	for(int i = 0; i < (int)pv; i++){
+		for(int j = 0; j < (int)pu; j++){
+			cout << x[i][j].x << " " << x[i][j].y << " " << x[i][j].z << endl;
+		}
+	}
+*/
 
 	// Desalocando **d e **w:
 	for (int i = 0; i < c_v; i++) {
@@ -573,7 +686,13 @@ int main()
 	}
 	delete[] d;
 	delete[] w;
-
+/*
+	// Desalocando **x:
+	for (int i = 0; i < pv; i++) {
+			delete[] x[i];
+	}
+	delete[] x;
+*/
 	// Desalocando u_list e v_list:
 	delete[] u_list;
 	delete[] v_list;
