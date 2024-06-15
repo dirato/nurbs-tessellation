@@ -1,7 +1,12 @@
 #include <SFML/Graphics.hpp>
 #include<iostream>
 #include<cmath>
-
+/*
+*Para compilar código objeto:
+g++ nurbs_tessellation.cpp -o tessel -lsfml-graphics -lsfml-window -lsfml-system
+*Para executar:
+./tessel < pontos_controle.in > arquivo.out
+*/
 using std::cout, std::cin, std::endl;
 
 float TA[30][30], T[30][30], P[30][30];
@@ -64,16 +69,18 @@ struct Camera {
 	Vector* U;
 	Vector* V;
 	Vector* N;
+	float dist_focal;
 };
 typedef struct Camera Camera;
 
-Camera* newCamera(Point* C, Vector* U, Vector* V, Vector* N){
+Camera* newCamera(Point* C, Vector* U, Vector* V, Vector* N, float dist_focal){
 	Camera* cam = new Camera;
 
 	cam->C = C;
 	cam->U = U;
 	cam->V = V;
 	cam->N = N;
+	cam->dist_focal = dist_focal;
 
 	return cam;
 }
@@ -216,7 +223,7 @@ Camera* normalizar_camera(Camera* cam){
 
 	Vector* _U = prod_vectorial(_N, _V);
 
-	return newCamera(cam->C, _U, _V, _N);
+	return newCamera(cam->C, _U, _V, _N, cam->dist_focal);
 }
 
 float **mult_pointer(float A[][30], int rows_A, int columns_A, float B[][30], int rows_B, int columns_B){
@@ -290,7 +297,7 @@ Point* mudanca_coord_mundial_vista(Point* p, Camera* cam){
 Point* projecao_tela(Point* p, float d, float hx, float hy){
 /*
 	hx e hy é o tamanho da tela.
-	d é a distância entre a tela e a camera.
+	d é a distância focal (distância entre a tela e a camera).
 	p é um ponto em coordenadas de vista.
 	Retorna um ponto projetado na tela normalizada.
 */
@@ -491,14 +498,14 @@ int main()
 		//Camera* C = newCamera(newPoint(3.0f, 3.0f, 1.25f), NULL, newVector(0, 0, 1), newVector(-sqrt(2)/2, -sqrt(2)/2, 0));
 		//Camera* C = newCamera(newPoint(2.0f, 0.0f, 0.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
 		//NURBS camera:
-		Camera* C = newCamera(newPoint(7.0f, 2.0f, -1.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0));
+		Camera* C = newCamera(newPoint(7.0f, 2.0f, -1.0f), NULL, newVector(0, 0, 1), newVector(-1, 0, 0), 1);
 		//Camera* C = newCamera(newPoint(0.5f, 0.5f, 2.0f), NULL, newVector(0, 1, 0), newVector(0, 0, -1));
 		C = normalizar_camera(C);
 
 		//b2_0 = mudanca_coord_mundial_vista(b2_0, C);
 		//b2_0 = projecao_tela(b2_0, 1, hx, hy);
 		x_u_v = mudanca_coord_mundial_vista(x_u_v, C);
-		x_u_v = projecao_tela(x_u_v, 1, hx, hy); // dist_focal = 1;
+		x_u_v = projecao_tela(x_u_v, C->dist_focal, hx, hy); // dist_focal = 1;
 
 		// Plotando ponto 2D
 		//Point2D* ponto = coord_tela_pixels(Rx, Ry, b2_0);
