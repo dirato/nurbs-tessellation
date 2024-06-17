@@ -7,8 +7,8 @@ Veja a documentação de como instalar pacotes de SFML em "https://www.sfml-dev.
 
 *Para compilar código objeto:
 
-g++ arquivo.cpp -o arquivo -lsfml-graphics -lsfml-window -lsfml-system
+g++ nurbs_tessellation02.cpp -o tessel -lsfml-graphics -lsfml-window -lsfml-system
 
 *Para executar:
 
-./arquivo < arquivo.in > arquivo.out
+./tessel < in_nurbs.data > out_nurbs.data
