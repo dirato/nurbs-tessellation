@@ -3,9 +3,9 @@
 #include<cmath>
 /*
 *Para compilar código objeto:
-g++ nurbs_tessellation.cpp -o tessel -lsfml-graphics -lsfml-window -lsfml-system
+g++ arquivo.cpp -o arquivo -lsfml-graphics -lsfml-window -lsfml-system
 *Para executar:
-./tessel < arquivo.in > arquivo.out
+./arquivo < arquivo.in > arquivo.out
 */
 using std::cout, std::cin, std::endl;
 
@@ -361,8 +361,6 @@ l = 1, 2, ...
 	return (u - u_list[l-1])/(u_list[l+k-1] - u_list[l-1]) * Nk_l(k - 1, l, u, u_list) + (u_list[l+k] - u)/(u_list[l+k] - u_list[l]) * Nk_l(k - 1, l+1, u, u_list);
 }
 
-
-
 Point* nurbs(float u, float v, int n_u, int n_v, int c_u, int c_v, Point** d, float** w, float* u_list, float* v_list){
 /*
 	Retorna um ponto (em coordenadas mundiais) avaliado na superfície com parâmetros u e v.
@@ -448,13 +446,6 @@ int main()
 
 	//u_list = {u0, u1, ..., u_k_r_u}.
 	float* u_list = new float[k_r_u];
-/*	u_list[0] = 1.2f;
-	u_list[1] = 8.3f;
-	u_list[2] = 9.7f;
-	u_list[3] = 12.5f;
-	u_list[4] = 14.0f;
-	u_list[5] = 16.0f;
-	u_list[6] = 17.5f;*/
 
 	// Lendo da entrada e atribuindo os nós (u_i) à u_list:
 	int indice_u_list=0;
@@ -468,19 +459,9 @@ int main()
 			indice_u_list++;
 		}
 	}
-	/*for(int i = 0; i<k_r_u; i++){
-		cout << "u_" << i<< " = " << u_list[i] << endl;
-	}*/
 
 	//v_list = {u0, u1, ..., u_k_r_v}.
 	float* v_list = new float[k_r_v];
-	/*v_list[0] = 0.21f;
-	v_list[1] = 3.87f;
-	v_list[2] = 7.34f;
-	v_list[3] = 9.6f;
-	v_list[4] = 11.4f;
-	v_list[5] = 13.2f;
-	v_list[6] = 15.8f;*/
 
 	// Lendo da entrada e atribuindo os nós (v_i) à v_list:
 	int indice_v_list=0;
@@ -561,13 +542,14 @@ int main()
 	float pu;
 	float pv;
 	cin >> pu >> pv;
-	cout << "Pontos avaliados na superfície " << pu << " " << pv << endl;
+	cout << "Pontos avaliados na superfície em u e v: " << pu << " " << pv << endl;
 
 	//float t = 0.0f;
 
-	// Inicializando as variáveis de parametrização:
+	// Inicializando as variáveis u e v de parametrização:
 	float u = u_list[n_u-1];
 	float v = v_list[n_v-1];
+	// Subdividindo os intervalos úteis em u e v:
 	float delta_u = (u_list[c_u-1] - u_list[n_u-1])/pu;
 	float delta_v = (v_list[c_v-1] - v_list[n_v-1])/pv;
 	cout << "deltas u e v : " << delta_u << " " << delta_v << endl;
