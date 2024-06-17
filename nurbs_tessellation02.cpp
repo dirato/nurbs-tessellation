@@ -564,26 +564,6 @@ int main()
 		x[i] = new Point2D[(int)pu]; // colunas
 	}
 
-/*
-	Point* x_u_v = NULL;
-	//
-	for(int i = 0; i < pv; i++){
-		for(int j = 0; j < pu; j++){
-			u = u + (float)delta_u*j;
-			v = v + (float)delta_v*i;
-
-			x_u_v = nurbs(u, v, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
-			cam = normalizar_camera(cam);
-			x_u_v = mudanca_coord_mundial_vista(x_u_v, cam);
-			x_u_v = projecao_tela(x_u_v, cam->dist_focal, hx, hy);
-
-			Point2D* ponto = coord_tela_pixels(Rx, Ry, x_u_v);
-			//cout << "Proj_b2_0(" << t << "): " << ponto->x << ", " << ponto->y << endl;
-			sf::Vertex point(sf::Vector2f(ponto->x, ponto->y), sf::Color::White);
-		}
-	}
-*/
-
 	Point* x_u_v = NULL;
 	for(int i = 0; i < (int)pv; i++){
 		v = v + delta_v;
@@ -636,19 +616,12 @@ int main()
 		}
 	}
 //------------------------------------------------------------------------------------------------------------------------------
-
+/*
+	// Escrevendo as coordenadas da nurbs de tela no arquivo:
 	for(int i = 0; i < (int)pv; i++){
 		for(int j = 0; j < (int)pu; j++){
 			//cout << x_u_v->x << ", " << x_u_v->y << ", " << x_u_v->z << endl;
 			cout << "Projeção na tela: "<< "x(" << i << ", " << j << ") = (" << x[i][j].x << ", " << x[i][j].y << ")" << endl;
-		}
-	}
-	//fim_tela_proj = true;
-/*
-	// Escrevendo na saída os ptos na superfície:
-	for(int i = 0; i < (int)pv; i++){
-		for(int j = 0; j < (int)pu; j++){
-			cout << x[i][j].x << " " << x[i][j].y << " " << x[i][j].z << endl;
 		}
 	}
 */
