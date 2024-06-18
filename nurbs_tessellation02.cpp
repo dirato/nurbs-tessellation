@@ -572,7 +572,7 @@ int main()
 			u = u + delta_u;
 			//cout << "u" << j << "= " << u << endl;
 
-			x_u_v = nurbs(u, v, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
+			x_u_v = nurbs(v, u, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
 			cout << "x(" << i << ", " << j << ") = " << x_u_v->x << " " << x_u_v->y << " " << x_u_v-> z << endl;
 
 			//cam = normalizar_camera(cam);
