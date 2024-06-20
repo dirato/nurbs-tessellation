@@ -352,10 +352,10 @@ l = 1, 2, ...
 */
 
 	if (k == 1) {
-		if(u_list[l-1] == u_list[l]){
+		/*if(u_list[l-1] == u_list[l]){
 		// Cuidado aqui: Nós repetidos no inter. útil causa singularidade no denominador:
 		return 0;
-		}
+	}*/
 		return (u - u_list[l-1])/(u_list[l+k-1] - u_list[l-1]) * N0_i( l, u, u_list) + (u_list[l+k] - u)/(u_list[l+k] - u_list[l]) * N0_i(l+1, u, u_list);
 	}
 	return (u - u_list[l-1])/(u_list[l+k-1] - u_list[l-1]) * Nk_l(k - 1, l, u, u_list) + (u_list[l+k] - u)/(u_list[l+k] - u_list[l]) * Nk_l(k - 1, l+1, u, u_list);
