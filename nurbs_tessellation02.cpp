@@ -459,6 +459,10 @@ int main()
 			indice_u_list++;
 		}
 	}
+	// Printando u_list:
+	/*for(int i = 0; i < k_r_u; i++){
+		cout << "u_" << i << " = " << u_list[i] << endl;
+	}*/
 
 	//v_list = {u0, u1, ..., u_k_r_v}.
 	float* v_list = new float[k_r_v];
@@ -475,6 +479,7 @@ int main()
 			indice_v_list++;
 		}
 	}
+	// Printando v_list:
 	/*for(int i = 0; i < k_r_v; i++){
 		cout << "v_" << i << " = " << v_list[i] << endl;
 	}*/
@@ -550,10 +555,10 @@ int main()
 	cout << "deltas u e v : " << delta_u << " " << delta_v << endl;
 
 	// Inicializando as variáveis u e v de parametrização:
-	float u = u_list[n_u-1];
-	float v = v_list[n_v-1];
-	/*float u = u_list[n_u-1]-delta_u;
-	float v = v_list[n_v-1]-delta_v;*/
+	//float u = u_list[n_u-1];
+	//float v = v_list[n_v-1];
+	float u = u_list[n_u-1]-delta_u;
+	float v = v_list[n_v-1]-delta_v;
 //-*------------------------------------------------------------------------------
 	/*
 		x(i, j) são as projeçoões, em coordenadas de tela, dos pontos avaliados
@@ -573,6 +578,7 @@ int main()
 			u = u + delta_u;
 			//cout << "u" << j << "= " << u << endl;
 
+			cout << "u e v " << u << " " << v <<endl;
 			//x_u_v = nurbs(v, u, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
 			x_u_v = nurbs(u, v, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
 			//x_u_v = nurbs(v, u, n_v, n_u, c_v, c_u, d, w, v_list, u_list);
