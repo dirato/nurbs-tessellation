@@ -412,8 +412,8 @@ void print_nurbs_tesseletion(sf::RenderWindow* window, Point2D** x, float pu, fl
 }
 
 void print_nurbs(sf::RenderWindow* window, Point2D** x, float pu, float pv){
-	for(int i = 0; i < (int)pv - 1; i++){
-		for(int j = 0; j < (int)pu - 1; j++){
+	for(int i = 0; i < (int)pv; i++){
+		for(int j = 0; j < (int)pu; j++){
 			sf::Vertex point(sf::Vector2f((float)x[i][j].x, (float)x[i][j].y), sf::Color::Yellow);
 			window->draw(&point, 1, sf::Points);
 		}
@@ -544,15 +544,16 @@ int main()
 	cin >> pu >> pv;
 	cout << "Pontos avaliados na superfície em u e v: " << pu << " " << pv << endl;
 
-	//float t = 0.0f;
-
-	// Inicializando as variáveis u e v de parametrização:
-	float u = u_list[n_u-1];
-	float v = v_list[n_v-1];
 	// Subdividindo os intervalos úteis em u e v:
 	float delta_u = (u_list[c_u-1] - u_list[n_u-1])/pu;
 	float delta_v = (v_list[c_v-1] - v_list[n_v-1])/pv;
 	cout << "deltas u e v : " << delta_u << " " << delta_v << endl;
+
+	// Inicializando as variáveis u e v de parametrização:
+	float u = u_list[n_u-1];
+	float v = v_list[n_v-1];
+	/*float u = u_list[n_u-1]-delta_u;
+	float v = v_list[n_v-1]-delta_v;*/
 //-*------------------------------------------------------------------------------
 	/*
 		x(i, j) são as projeçoões, em coordenadas de tela, dos pontos avaliados
@@ -572,8 +573,11 @@ int main()
 			u = u + delta_u;
 			//cout << "u" << j << "= " << u << endl;
 
-			x_u_v = nurbs(v, u, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
+			//x_u_v = nurbs(v, u, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
+			x_u_v = nurbs(u, v, n_u, n_v, c_u, c_v, d, w, u_list, v_list);
+			//x_u_v = nurbs(v, u, n_v, n_u, c_v, c_u, d, w, v_list, u_list);
 			cout << "x(" << i << ", " << j << ") = " << x_u_v->x << " " << x_u_v->y << " " << x_u_v-> z << endl;
+			// cout << x_u_v->x << " " << x_u_v->y << " " << x_u_v-> z << endl;
 
 			//cam = normalizar_camera(cam);
 			Camera* _cam = normalizar_camera(cam);
@@ -605,11 +609,15 @@ int main()
 	}
 	//v = v_list[n_v-1];
 
+	bool fim = false;
 //---------------------------------------------------------------------------------------------------------------------------
 	while(window.isOpen())
 	{
-	print_nurbs_tesseletion(&window, x, pu, pv);
-	//print_nurbs(&window, x, pu, pv);
+		if(!fim){
+			print_nurbs_tesseletion(&window, x, pu, pv);
+			//print_nurbs(&window, x, pu, pv);
+			fim = true;
+		}
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
 			window.close();
